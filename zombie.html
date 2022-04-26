@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=My+Soul&family=Yellowtail&display=swap" rel="stylesheet">
+  <title>Document</title>
+
+  <style>
+    body,
+    html {
+      color: aliceblue;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .container {
+      width: 100%;
+      height: calc(100% - 700px);
+      position: absolute;
+      left: 0;
+      top: 0;
+      background: url('https://cdn.pixabay.com/photo/2016/11/05/20/53/zombie-1801470_1280.jpg') no-repeat;
+      background-position: 0%, center;
+      background-color: #1c1b19;
+    }
+
+    .zombieshoot {
+      width: 1000px;
+      height: 300px;
+      position: absolute;
+      top: 0;
+      right: 0px;
+      font-size: 130px;
+      text-align: center;
+      font-weight: bolder;
+      color: transparent;
+      background: url('https://img-qn.51miz.com/Element/00/71/93/10/e2f0f9c6_E719310_88155ea4.jpg') no-repeat center center;
+      background-size: cover;
+      -webkit-background-clip: text;
+      background-clip: text;
+      font-family: 'Creepster', cursive;
+      font-family: 'My Soul', cursive;
+      font-family: 'Yellowtail', cursive;
+      line-height: 100px;
+      margin-top: 50px;
+    }
+
+    .zombieshoot img {
+      position: relative;
+      top: 55px;
+    }
+
+
+    input {
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      border: 0ch;
+      position: relative;
+    }
+
+    input:hover {
+      background-color: darkgreen;
+      color: aliceblue;
+    }
+
+    #game {
+      width: 100%;
+      height: 700px;
+      background: black;
+      overflow: hidden;
+      position: relative;
+      cursor: url(./Shoot/cursor.png) 50 50, auto;
+      position: absolute;
+      bottom: 0%;
+      border-top: 5px solid darkgreen;
+      box-shadow: 15px 15px 15px solid rgba(255, 255, 255, 0.8);
+    }
+
+    #game img {
+      height: 150px;
+      position: absolute;
+      /* 無法被選取 */
+      user-select: none;
+      /* 無法拖移 */
+      -webkit-user-drag: none;
+      -webkit-user-select: none;
+    }
+
+    p {
+      font-size: 32px;
+      margin-left: 30px;
+    }
+
+    .blood {
+      /* 忽略點擊事件 */
+      pointer-events: none;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <input type="button" value="開始" id="btn-start">
+    <br>
+
+    <p>Score：<span id="text-score">0</span> 分 </p>
+    <p>Left ： <span id="text-time">0</span> 秒 </p>
+    <div class="zombieshoot">
+      Zombie
+      <img src="./Shoot/cursor.png" alt="">
+      Shoot
+      <div class="white"></div>
+    </div>
+    <br>
+  </div>
+
+  <div id="game"></div>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'
+    integrity='sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ=='
+    crossorigin='anonymous'></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+
+    let score = 0
+    let countdown = 10
+    let timer = 0
+
+    function move(zombie) {
+      const top = Math.round(Math.random() * 85) + '%'
+      const left = Math.round(Math.random() * 85) + '%'
+      zombie.stop().animate({ top, left }, 2000, function () {
+        move(zombie)
+      })
+    }
+
+    $('#btn-start').click(function () {
+      // 停用按鈕
+      $(this).attr('disabled', true)
+      // 重設
+      score = 0
+      $('#text-score').text(score)
+      countdown = 10
+      $('#text-time').text(countdown)
+
+      // 開始遊戲
+      timer = setInterval(function () {
+        // 倒數
+        countdown--
+        $('#text-time').text(countdown)
+
+        // 殭屍用隨機數出現，若隨機數大於1，且所有頁面上的殭屍數不超過10
+        const random = Math.round(Math.random() * 9)
+        console.log(random)
+        if (random > 1 && $('#game .zombie').length < 10) {
+          const top = Math.round(Math.random() * 70) + '%'
+          const left = Math.round(Math.random() * 70) + '%'
+          const zombie = $(`<img src="./Shoot/1.gif" class="zombie" style="top: ${top}; left: ${left}">`)
+          $('#game').append(zombie)
+          move(zombie)
+        }
+
+        if (countdown <= 0) {
+          clearInterval(timer)
+          // 清空遊戲區域
+          $('#game img').remove()
+          // 重新啟用開始按鈕
+          $('#btn-start').attr('disabled', false)
+          Swal.fire({
+            title: '遊戲結束',
+            text: `時間到，你得到${score}`,
+            icon: 'info'
+          })
+          // alert(`時間到，你得到 ${score} 分`)
+        }
+      }, 1000)
+    })
+
+    $('#game').on('click', '.zombie', function () {
+      $(this).attr('src', './Shoot/blood.png')
+      // 這個不加，會造成不斷觸及會增加分數
+      $(this).removeClass('zombie').addClass('blood')
+      $(this).stop()
+      score++
+      $('#text-score').text(score)
+    })
+  </script>
+</body>
+
+</html>
